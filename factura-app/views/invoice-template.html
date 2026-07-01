@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Factura {{NUMERO_FACTURA}}</title>
+<style>
+  @page { margin: 0; }
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    font-family:'DejaVu Sans', Arial, sans-serif;
+    color:#14213D;
+    background:#FFFFFF;
+  }
+  .ticket{ width:100%; }
+  .head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    padding:40px 48px 24px;
+  }
+  .company-name{ font-size:24px; font-weight:700; margin-bottom:10px; }
+  .field-label{
+    display:block;
+    font-size:9px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:#7A7F87;
+    margin-bottom:2px;
+  }
+  .field{ margin-bottom:8px; font-size:12.5px; }
+  .masthead{ text-align:right; }
+  .wordmark{ font-size:30px; font-style:italic; font-weight:600; }
+  .invoice-meta{ margin-top:12px; font-size:11.5px; color:#3C4A63; line-height:1.9; }
+  .invoice-meta span.label{ display:inline-block; min-width:110px; color:#7A7F87; font-weight:600; }
+  .perf{ border-top:2px dashed #DDD8CC; margin:0 48px; }
+  .meta-row{ padding:22px 48px 6px; display:flex; justify-content:space-between; }
+  .eyebrow{
+    font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;
+    color:#C1440E; margin-bottom:8px;
+  }
+  .client-name{ font-weight:700; font-size:15px; margin-bottom:4px; }
+  .stamp-badge{
+    font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase;
+    padding:8px 16px; border:2px solid #C1440E; color:#C1440E; border-radius:8px;
+    background:#F6DDD1; display:inline-block; transform:rotate(3deg);
+  }
+  .totals{ padding:26px 48px 44px; text-align:right; }
+  .totals .label{ font-size:11px; color:#7A7F87; text-transform:uppercase; letter-spacing:1px; }
+  .totals .amount{ font-size:30px; font-weight:700; margin-top:6px; }
+  .notes{ padding:0 48px 30px; font-size:12px; color:#3C4A63; border-left:2px solid #DDD8CC; margin:0 48px 30px; padding-left:12px; }
+</style>
+</head>
+<body>
+  <div class="ticket">
+
+    <div class="head">
+      <div>
+        <span class="field-label">Nombre</span>
+        <div class="company-name">{{NOMBRE}}</div>
+        <div class="field"><span class="field-label">Dirección</span>{{DIRECCION}}</div>
+        <div class="field"><span class="field-label">Correo electrónico</span>{{CORREO}}</div>
+        <div class="field"><span class="field-label">NIF</span>{{NIF}}</div>
+      </div>
+      <div class="masthead">
+        <div class="wordmark">Factura</div>
+        <div class="invoice-meta">
+          <div><span class="label">Nº de factura</span>{{NUMERO_FACTURA}}</div>
+          <div><span class="label">Fecha de emisión</span>{{FECHA_EMISION}}</div>
+          <div><span class="label">enviadoEn</span>{{ENVIADO_EN}}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="perf"></div>
+
+    <div class="meta-row">
+      <div>
+        <div class="eyebrow">Facturar a</div>
+        <span class="field-label">Nombre del cliente</span>
+        <div class="client-name">{{NOMBRE_CLIENTE}}</div>
+      </div>
+      <div class="stamp-badge">{{MODO_FORMULARIO}}</div>
+    </div>
+
+    <div class="notes">Gracias por confiar en {{NOMBRE}}. El pago se considera realizado al recibir el importe en la cuenta indicada.</div>
+
+    <div class="totals">
+      <div class="label">Importe total</div>
+      <div class="amount">{{IMPORTE}} €</div>
+    </div>
+
+  </div>
+</body>
+</html>
