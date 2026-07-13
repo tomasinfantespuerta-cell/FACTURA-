@@ -11,64 +11,139 @@
     font-family:'DejaVu Sans', Arial, sans-serif;
     color:#14213D;
     background:#FFFFFF;
+    font-size:12.5px;
   }
-  .ticket{ width:100%; }
+  .sheet{ width:100%; padding:0 0 40px; }
+
+  /* Encabezado */
   .head{
     display:flex;
     justify-content:space-between;
     align-items:flex-start;
-    padding:40px 48px 24px;
+    padding:44px 50px 26px;
   }
-  .company-name{ font-size:24px; font-weight:700; margin-bottom:10px; }
+  .company-name{ font-size:22px; font-weight:700; margin-bottom:8px; letter-spacing:-0.01em; }
   .field-label{
     display:block;
-    font-size:9px;
+    font-size:8.5px;
     font-weight:700;
     letter-spacing:1px;
     text-transform:uppercase;
-    color:#7A7F87;
-    margin-bottom:2px;
+    color:#8A8F97;
+    margin-bottom:1px;
   }
-  .field{ margin-bottom:8px; font-size:12.5px; }
+  .field{ margin-bottom:6px; font-size:12px; line-height:1.5; }
   .masthead{ text-align:right; }
-  .wordmark{ font-size:30px; font-style:italic; font-weight:600; }
-  .invoice-meta{ margin-top:12px; font-size:11.5px; color:#3C4A63; line-height:1.9; }
-  .invoice-meta span.label{ display:inline-block; min-width:110px; color:#7A7F87; font-weight:600; }
-  .perf{ border-top:2px dashed #DDD8CC; margin:0 48px; }
-  .meta-row{ padding:22px 48px 6px; display:flex; justify-content:space-between; }
+  .wordmark{ font-size:28px; font-style:italic; font-weight:600; color:#14213D; }
+  .invoice-meta{ margin-top:14px; font-size:11.5px; color:#3C4A63; line-height:1.9; }
+  .invoice-meta .row{ display:flex; justify-content:flex-end; gap:14px; }
+  .invoice-meta .label{ color:#8A8F97; font-weight:600; min-width:110px; text-align:left; }
+
+  .perf{ border-top:2px dashed #DDD8CC; margin:0 50px; }
+
+  /* Cliente */
+  .meta-row{ padding:24px 50px 8px; }
   .eyebrow{
-    font-size:10px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;
+    font-size:9.5px; font-weight:700; letter-spacing:1.2px; text-transform:uppercase;
     color:#C1440E; margin-bottom:8px;
   }
-  .client-name{ font-weight:700; font-size:15px; margin-bottom:4px; }
-  .stamp-badge{
-    font-weight:700; font-size:12px; letter-spacing:1px; text-transform:uppercase;
-    padding:8px 16px; border:2px solid #C1440E; color:#C1440E; border-radius:8px;
-    background:#F6DDD1; display:inline-block; transform:rotate(3deg);
+  .client-name{ font-weight:700; font-size:14px; margin-bottom:3px; }
+
+  /* Tabla de conceptos */
+  .items{ padding:20px 50px 0; }
+  table{ width:100%; border-collapse:collapse; }
+  thead th{
+    text-align:left;
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:.6px;
+    text-transform:uppercase;
+    color:#8A8F97;
+    padding:0 6px 8px;
+    border-bottom:1.5px solid #14213D;
   }
-  .totals{ padding:26px 48px 44px; text-align:right; }
-  .totals .label{ font-size:11px; color:#7A7F87; text-transform:uppercase; letter-spacing:1px; }
-  .totals .amount{ font-size:30px; font-weight:700; margin-top:6px; }
-  .notes{ padding:0 48px 30px; font-size:12px; color:#3C4A63; border-left:2px solid #DDD8CC; margin:0 48px 30px; padding-left:12px; }
+  thead th.num, tbody td.num{ text-align:right; }
+  tbody td{
+    padding:10px 6px;
+    border-bottom:1px solid #EDEBE5;
+    font-size:12px;
+    vertical-align:top;
+  }
+  tbody td.qty, tbody td.price, tbody td.amount{
+    text-align:right;
+    white-space:nowrap;
+  }
+
+  /* Totales */
+  .summary-row{
+    display:flex;
+    justify-content:flex-end;
+    padding:22px 50px 0;
+  }
+  .totals{ width:260px; font-size:12px; }
+  .totals .line{
+    display:flex;
+    justify-content:space-between;
+    padding:5px 0;
+    color:#3C4A63;
+  }
+  .totals .line.deduccion{ color:#C1440E; }
+  .totals .grand{
+    display:flex;
+    justify-content:space-between;
+    margin-top:8px;
+    padding-top:10px;
+    border-top:2px solid #14213D;
+    font-size:17px;
+    font-weight:700;
+    color:#14213D;
+  }
+
+  /* Pie: pago + notas */
+  .footer{
+    display:flex;
+    justify-content:space-between;
+    gap:30px;
+    padding:34px 50px 0;
+  }
+  .footer .col{ font-size:11px; line-height:1.8; color:#3C4A63; max-width:260px; }
+  .footer .col b{
+    display:block;
+    font-size:9.5px;
+    font-weight:700;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+    color:#8A8F97;
+    margin-bottom:4px;
+  }
+  .thanks{
+    margin:26px 50px 0;
+    padding-top:14px;
+    border-top:1px solid #EDEBE5;
+    font-size:11px;
+    color:#8A8F97;
+    text-align:center;
+  }
 </style>
 </head>
 <body>
-  <div class="ticket">
+  <div class="sheet">
 
     <div class="head">
       <div>
-        <span class="field-label">Nombre</span>
+        <span class="field-label">Emisor</span>
         <div class="company-name">{{NOMBRE}}</div>
+        <div class="field"><span class="field-label">NIF</span>{{NIF}}</div>
         <div class="field"><span class="field-label">Dirección</span>{{DIRECCION}}</div>
         <div class="field"><span class="field-label">Correo electrónico</span>{{CORREO}}</div>
-        <div class="field"><span class="field-label">NIF</span>{{NIF}}</div>
+        <div class="field">{{FILA_TELEFONO}}</div>
       </div>
       <div class="masthead">
         <div class="wordmark">Factura</div>
         <div class="invoice-meta">
-          <div><span class="label">Nº de factura</span>{{NUMERO_FACTURA}}</div>
-          <div><span class="label">Fecha de emisión</span>{{FECHA_EMISION}}</div>
-          <div><span class="label">enviadoEn</span>{{ENVIADO_EN}}</div>
+          <div class="row"><span class="label">Nº de factura</span><span>{{NUMERO_FACTURA}}</span></div>
+          <div class="row"><span class="label">Fecha de emisión</span><span>{{FECHA_EMISION}}</span></div>
+          {{FILA_FORMA_PAGO}}
         </div>
       </div>
     </div>
@@ -76,20 +151,50 @@
     <div class="perf"></div>
 
     <div class="meta-row">
-      <div>
-        <div class="eyebrow">Facturar a</div>
-        <span class="field-label">Nombre del cliente</span>
-        <div class="client-name">{{NOMBRE_CLIENTE}}</div>
+      <div class="eyebrow">Facturar a</div>
+      <div class="client-name">{{NOMBRE_CLIENTE}}</div>
+      <div class="field">{{FILA_NIF_CLIENTE}}</div>
+      <div class="field">{{FILA_DIRECCION_CLIENTE}}</div>
+    </div>
+
+    <div class="items">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:52%">Concepto</th>
+            <th class="num">Cantidad</th>
+            <th class="num">Precio unitario</th>
+            <th class="num">Importe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{FILAS_CONCEPTOS}}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="summary-row">
+      <div class="totals">
+        <div class="line"><span>Base imponible</span><span>{{BASE_IMPONIBLE}} €</span></div>
+        <div class="line"><span>IVA ({{IVA_PORCENTAJE}}%)</span><span>{{CUOTA_IVA}} €</span></div>
+        {{FILA_IRPF}}
+        <div class="grand"><span>Total</span><span>{{TOTAL}} €</span></div>
       </div>
-      <div class="stamp-badge">{{MODO_FORMULARIO}}</div>
     </div>
 
-    <div class="notes">Gracias por confiar en {{NOMBRE}}. El pago se considera realizado al recibir el importe en la cuenta indicada.</div>
-
-    <div class="totals">
-      <div class="label">Importe total</div>
-      <div class="amount">{{IMPORTE}} €</div>
+    <div class="footer">
+      <div class="col">
+        <b>Forma de pago</b>
+        {{FORMA_PAGO_TEXTO}}
+        {{FILA_IBAN}}
+      </div>
+      <div class="col" style="text-align:right">
+        <b>Notas</b>
+        {{NOTAS}}
+      </div>
     </div>
+
+    <div class="thanks">Gracias por confiar en {{NOMBRE}}.</div>
 
   </div>
 </body>
