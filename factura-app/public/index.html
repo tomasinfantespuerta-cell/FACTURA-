@@ -24,7 +24,7 @@
     color:var(--ink);
   }
   .card{
-    max-width:560px;
+    max-width:680px;
     margin:0 auto;
     background:var(--paper);
     border-radius:18px;
@@ -38,7 +38,18 @@
     font-size:30px;
     margin:0 0 6px;
   }
-  p.subtitle{ color:var(--muted); font-size:14px; margin:0 0 32px; }
+  p.subtitle{ color:var(--muted); font-size:14px; margin:0 0 28px; }
+  h2.section{
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--stamp);
+    margin:32px 0 14px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  h2.section:first-of-type{ border-top:none; padding-top:0; margin-top:0; }
   label{
     display:block;
     font-size:11px;
@@ -48,8 +59,8 @@
     color:var(--muted);
     margin-bottom:6px;
   }
-  .field{ margin-bottom:18px; }
-  input{
+  .field{ margin-bottom:16px; }
+  input, textarea{
     width:100%;
     padding:11px 12px;
     border:1px solid var(--line);
@@ -58,12 +69,45 @@
     font-size:14px;
     color:var(--ink);
   }
-  input:focus{ outline:2px solid var(--stamp); outline-offset:1px; }
+  textarea{ resize:vertical; min-height:60px; }
+  input:focus, textarea:focus{ outline:2px solid var(--stamp); outline-offset:1px; }
   .row{ display:flex; gap:14px; }
   .row .field{ flex:1; }
-  button{
+  .row3 .field{ flex:1; }
+
+  /* Líneas de conceptos */
+  .item-row{
+    display:grid;
+    grid-template-columns: 1fr 80px 110px 32px;
+    gap:10px;
+    align-items:end;
+    margin-bottom:12px;
+  }
+  .item-row label{ margin-bottom:4px; }
+  .item-row .del{
+    height:42px;
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:8px;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:16px;
+  }
+  .item-row .del:hover{ color:var(--stamp); border-color:var(--stamp); }
+  #addItem{
+    background:none;
+    border:none;
+    color:var(--stamp);
+    font-weight:700;
+    font-size:13px;
+    cursor:pointer;
+    padding:4px 0 8px;
+  }
+  #addItem:hover{ text-decoration:underline; }
+
+  button[type=submit]{
     width:100%;
-    margin-top:8px;
+    margin-top:26px;
     padding:13px;
     border:none;
     border-radius:999px;
@@ -73,15 +117,12 @@
     font-size:14px;
     cursor:pointer;
   }
-  button:hover{ background:#a83a0d; }
-  button:disabled{ opacity:.6; cursor:not-allowed; }
-  #estado{
-    margin-top:18px;
-    font-size:13.5px;
-    text-align:center;
-  }
+  button[type=submit]:hover{ background:#a83a0d; }
+  button[type=submit]:disabled{ opacity:.6; cursor:not-allowed; }
+  #estado{ margin-top:18px; font-size:13.5px; text-align:center; }
   #estado.ok{ color:#2F6E51; }
   #estado.error{ color:var(--stamp); }
+  .hint{ font-size:11.5px; color:var(--muted); margin-top:-10px; margin-bottom:16px; }
 </style>
 </head>
 <body>
@@ -90,41 +131,107 @@
     <p class="subtitle">Rellena los datos y se generará y enviará el PDF automáticamente.</p>
 
     <form id="formFactura">
+
+      <h2 class="section">Tu empresa</h2>
       <div class="field">
-        <label for="nombre">Nombre (tu empresa)</label>
+        <label for="nombre">Nombre / razón social</label>
         <input id="nombre" name="nombre" required>
       </div>
-      <div class="field">
-        <label for="nombreCliente">Nombre del cliente</label>
-        <input id="nombreCliente" name="nombreCliente" required>
+      <div class="row">
+        <div class="field">
+          <label for="nif">NIF</label>
+          <input id="nif" name="nif" required>
+        </div>
+        <div class="field">
+          <label for="telefono">Teléfono (opcional)</label>
+          <input id="telefono" name="telefono">
+        </div>
       </div>
       <div class="field">
         <label for="direccion">Dirección</label>
         <input id="direccion" name="direccion" required>
       </div>
-      <div class="row">
-        <div class="field">
-          <label for="correoElectronico">Correo electrónico del cliente</label>
-          <input id="correoElectronico" name="correoElectronico" type="email" required>
-        </div>
-        <div class="field">
-          <label for="nif">NIF</label>
-          <input id="nif" name="nif" required>
-        </div>
+      <div class="field">
+        <label for="correoElectronico">Correo electrónico de tu empresa</label>
+        <input id="correoElectronico" name="correoElectronico" type="email" required>
+      </div>
+
+      <h2 class="section">Cliente</h2>
+      <div class="field">
+        <label for="nombreCliente">Nombre del cliente</label>
+        <input id="nombreCliente" name="nombreCliente" required>
       </div>
       <div class="row">
         <div class="field">
-          <label for="fechaEmision">Fecha de emisión</label>
-          <input id="fechaEmision" name="fechaEmision" type="date" required>
+          <label for="nifCliente">NIF del cliente (opcional)</label>
+          <input id="nifCliente" name="nifCliente">
         </div>
+        <div class="field">
+          <label for="direccionCliente">Dirección del cliente (opcional)</label>
+          <input id="direccionCliente" name="direccionCliente">
+        </div>
+      </div>
+      <div class="field">
+        <label for="correoCliente">Correo electrónico del cliente (aquí se enviará la factura)</label>
+        <input id="correoCliente" name="correoCliente" type="email" required>
+      </div>
+
+      <h2 class="section">Datos de la factura</h2>
+      <div class="row">
         <div class="field">
           <label for="numeroFactura">Nº de factura</label>
           <input id="numeroFactura" name="numeroFactura" required>
         </div>
+        <div class="field">
+          <label for="fechaEmision">Fecha de emisión</label>
+          <input id="fechaEmision" name="fechaEmision" type="date" required>
+        </div>
+      </div>
+
+      <h2 class="section">Conceptos</h2>
+      <div id="items">
+        <div class="item-row">
+          <div class="field">
+            <label>Descripción</label>
+            <input class="item-concepto" required placeholder="Diseño de identidad visual">
+          </div>
+          <div class="field">
+            <label>Cantidad</label>
+            <input class="item-cantidad" type="number" step="any" value="1" required>
+          </div>
+          <div class="field">
+            <label>Precio (€)</label>
+            <input class="item-precio" type="number" step="any" placeholder="0.00" required>
+          </div>
+          <button type="button" class="del" onclick="quitarLinea(this)">✕</button>
+        </div>
+      </div>
+      <button type="button" id="addItem" onclick="anadirLinea()">+ Añadir concepto</button>
+
+      <h2 class="section">Impuestos</h2>
+      <div class="row">
+        <div class="field">
+          <label for="ivaPorcentaje">IVA (%)</label>
+          <input id="ivaPorcentaje" name="ivaPorcentaje" type="number" step="any" value="21" required>
+        </div>
+        <div class="field">
+          <label for="irpfPorcentaje">Retención IRPF (%) — deja 0 si no aplica</label>
+          <input id="irpfPorcentaje" name="irpfPorcentaje" type="number" step="any" value="0">
+        </div>
+      </div>
+
+      <h2 class="section">Pago y notas (opcional)</h2>
+      <div class="field">
+        <label for="formaPago">Forma de pago</label>
+        <input id="formaPago" name="formaPago" placeholder="Transferencia bancaria a 30 días">
       </div>
       <div class="field">
-        <label for="importe">Importe (€)</label>
-        <input id="importe" name="importe" type="text" placeholder="1.942,05" required>
+        <label for="iban">IBAN</label>
+        <input id="iban" name="iban" placeholder="ES00 0000 0000 0000 0000 0000">
+      </div>
+      <div class="field">
+        <label for="notas">Notas para el cliente</label>
+        <textarea id="notas" name="notas" placeholder="Gracias por su confianza."></textarea>
       </div>
 
       <button type="submit" id="btnEnviar">Generar y enviar factura</button>
@@ -133,6 +240,35 @@
   </div>
 
 <script>
+  function anadirLinea(){
+    const items = document.getElementById('items');
+    const row = document.createElement('div');
+    row.className = 'item-row';
+    row.innerHTML = `
+      <div class="field">
+        <label>Descripción</label>
+        <input class="item-concepto" required>
+      </div>
+      <div class="field">
+        <label>Cantidad</label>
+        <input class="item-cantidad" type="number" step="any" value="1" required>
+      </div>
+      <div class="field">
+        <label>Precio (€)</label>
+        <input class="item-precio" type="number" step="any" placeholder="0.00" required>
+      </div>
+      <button type="button" class="del" onclick="quitarLinea(this)">✕</button>
+    `;
+    items.appendChild(row);
+  }
+
+  function quitarLinea(boton){
+    const items = document.getElementById('items');
+    if (items.children.length > 1){
+      boton.closest('.item-row').remove();
+    }
+  }
+
   const form = document.getElementById('formFactura');
   const boton = document.getElementById('btnEnviar');
   const estado = document.getElementById('estado');
@@ -145,6 +281,13 @@
     estado.className = '';
 
     const datos = Object.fromEntries(new FormData(form).entries());
+
+    const items = Array.from(document.querySelectorAll('.item-row')).map(row => ({
+      concepto: row.querySelector('.item-concepto').value,
+      cantidad: parseFloat(row.querySelector('.item-cantidad').value) || 0,
+      precio: parseFloat(row.querySelector('.item-precio').value) || 0,
+    }));
+    datos.items = items;
 
     try {
       const respuesta = await fetch('/generar-factura', {
