@@ -11,13 +11,34 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
 
-// Estas dos URLs se configuran como variables de entorno (ver .env.example)
+// Gotenberg es compartido por todos los clientes (no guarda datos de nadie)
 const GOTENBERG_URL = process.env.GOTENBERG_URL;
-const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
 
-const templatePath = path.join(__dirname, 'views', 'invoice-template.html');
+const clientsPath = path.join(__dirname, 'clients.json');
+const viewsDir = path.join(__dirname, 'views');
+const defaultTemplatePath = path.join(viewsDir, 'invoice-template.html');
+
+function getClients() {
+  return JSON.parse(fs.readFileSync(clientsPath, 'utf-8'));
+}
+
+function getClient(slug) {
+  return getClients().find((c) => c.slug === slug);
+}
+
+// Cliente "por defecto" = el primero de la lista (para que la URL raíz
+// "/" siga funcionando como antes, sin romper nada de lo que ya había)
+function getDefaultClient() {
+  const clientes = getClients();
+  return clientes[0];
+}
+
+function templatePathFor(cliente) {
+  const nombreArchivo = cliente?.template || 'invoice-template.html';
+  const ruta = path.join(viewsDir, nombreArchivo);
+  return fs.existsSync(ruta) ? ruta : defaultTemplatePath;
+}
 
 function escapeHtml(str) {
   return String(str ?? '')
@@ -74,8 +95,8 @@ function formatearFecha(fechaISO) {
   return `${dia}/${mes}/${anio}`;
 }
 
-function buildInvoiceHtml(data) {
-  let html = fs.readFileSync(templatePath, 'utf-8');
+function buildInvoiceHtml(data, rutaPlantilla) {
+  let html = fs.readFileSync(rutaPlantilla, 'utf-8');
 
   const items = Array.isArray(data.items) ? data.items : [];
   const { baseImponible, cuotaIva, retencionIrpf, total } = calcularTotales(
@@ -154,75 +175,108 @@ const CAMPOS_REQUERIDOS = [
   'numeroFactura', 'fechaEmision',
 ];
 
+async function generarYEnviarFactura(cliente, data) {
+  const faltantes = CAMPOS_REQUERIDOS.filter((campo) => !data[campo]);
+  if (faltantes.length > 0) {
+    const error = new Error(`Faltan campos obligatorios: ${faltantes.join(', ')}`);
+    error.status = 400;
+    throw error;
+  }
+
+  if (!Array.isArray(data.items) || data.items.length === 0) {
+    const error = new Error('La factura necesita al menos un concepto.');
+    error.status = 400;
+    throw error;
+  }
+
+  if (!GOTENBERG_URL || !cliente.webhookUrl) {
+    const error = new Error(
+      'Falta GOTENBERG_URL (variable de entorno) o el webhookUrl de este cliente en clients.json.'
+    );
+    error.status = 500;
+    throw error;
+  }
+
+  const html = buildInvoiceHtml(data, templatePathFor(cliente));
+
+  // 1. Convertir el HTML a PDF usando Gotenberg (compartido por todos)
+  const gotenbergForm = new FormData();
+  gotenbergForm.append('files', Buffer.from(html, 'utf-8'), {
+    filename: 'index.html',
+    contentType: 'text/html',
+  });
+
+  const gotenbergResponse = await fetch(
+    `${GOTENBERG_URL}/forms/chromium/convert/html`,
+    { method: 'POST', body: gotenbergForm, headers: gotenbergForm.getHeaders() }
+  );
+
+  if (!gotenbergResponse.ok) {
+    const errText = await gotenbergResponse.text();
+    throw new Error(`Gotenberg respondió ${gotenbergResponse.status}: ${errText}`);
+  }
+
+  const pdfBuffer = Buffer.from(await gotenbergResponse.arrayBuffer());
+
+  // 2. Enviar el PDF al webhook de n8n propio de ESTE cliente
+  const n8nForm = new FormData();
+  n8nForm.append('pdf', pdfBuffer, {
+    filename: `factura-${data.numeroFactura}.pdf`,
+    contentType: 'application/pdf',
+  });
+  n8nForm.append('correoCliente', data.correoCliente);
+  n8nForm.append('nombreCliente', data.nombreCliente);
+  n8nForm.append('numeroFactura', data.numeroFactura);
+
+  const n8nResponse = await fetch(cliente.webhookUrl, {
+    method: 'POST',
+    body: n8nForm,
+    headers: n8nForm.getHeaders(),
+  });
+
+  if (!n8nResponse.ok) {
+    const errText = await n8nResponse.text();
+    throw new Error(`n8n respondió ${n8nResponse.status}: ${errText}`);
+  }
+}
+
+// --- Rutas ---
+
+// Formulario en la raíz "/" -> usa el cliente por defecto (compatibilidad
+// con la URL de siempre, no rompe nada de lo ya montado)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.post('/generar-factura', async (req, res) => {
   try {
-    const data = req.body;
-
-    const faltantes = CAMPOS_REQUERIDOS.filter((campo) => !data[campo]);
-    if (faltantes.length > 0) {
-      return res.status(400).json({
-        error: `Faltan campos obligatorios: ${faltantes.join(', ')}`,
-      });
-    }
-
-    if (!Array.isArray(data.items) || data.items.length === 0) {
-      return res.status(400).json({
-        error: 'La factura necesita al menos un concepto.',
-      });
-    }
-
-    if (!GOTENBERG_URL || !N8N_WEBHOOK_URL) {
-      return res.status(500).json({
-        error: 'Faltan las variables de entorno GOTENBERG_URL o N8N_WEBHOOK_URL en el servidor.',
-      });
-    }
-
-    const html = buildInvoiceHtml(data);
-
-    // 1. Convertir el HTML a PDF usando Gotenberg
-    const gotenbergForm = new FormData();
-    gotenbergForm.append('files', Buffer.from(html, 'utf-8'), {
-      filename: 'index.html',
-      contentType: 'text/html',
-    });
-
-    const gotenbergResponse = await fetch(
-      `${GOTENBERG_URL}/forms/chromium/convert/html`,
-      { method: 'POST', body: gotenbergForm, headers: gotenbergForm.getHeaders() }
-    );
-
-    if (!gotenbergResponse.ok) {
-      const errText = await gotenbergResponse.text();
-      throw new Error(`Gotenberg respondió ${gotenbergResponse.status}: ${errText}`);
-    }
-
-    const pdfBuffer = Buffer.from(await gotenbergResponse.arrayBuffer());
-
-    // 2. Enviar el PDF ya generado a n8n, junto con los datos necesarios
-    const n8nForm = new FormData();
-    n8nForm.append('pdf', pdfBuffer, {
-      filename: `factura-${data.numeroFactura}.pdf`,
-      contentType: 'application/pdf',
-    });
-    n8nForm.append('correoCliente', data.correoCliente);
-    n8nForm.append('nombreCliente', data.nombreCliente);
-    n8nForm.append('numeroFactura', data.numeroFactura);
-
-    const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
-      method: 'POST',
-      body: n8nForm,
-      headers: n8nForm.getHeaders(),
-    });
-
-    if (!n8nResponse.ok) {
-      const errText = await n8nResponse.text();
-      throw new Error(`n8n respondió ${n8nResponse.status}: ${errText}`);
-    }
-
+    const cliente = getDefaultClient();
+    await generarYEnviarFactura(cliente, req.body);
     res.json({ ok: true, mensaje: 'Factura generada y enviada correctamente.' });
   } catch (err) {
     console.error('Error generando la factura:', err);
-    res.status(500).json({ error: err.message });
+    res.status(err.status || 500).json({ error: err.message });
+  }
+});
+
+// Formulario por cliente: "/panaderia-luna", "/estudio-alba", etc.
+app.get('/:slug', (req, res, next) => {
+  const cliente = getClient(req.params.slug);
+  if (!cliente) return next(); // no existe ese cliente -> sigue a 404
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.post('/:slug/generar-factura', async (req, res) => {
+  try {
+    const cliente = getClient(req.params.slug);
+    if (!cliente) {
+      return res.status(404).json({ error: `No existe ningún cliente con la ruta "${req.params.slug}".` });
+    }
+    await generarYEnviarFactura(cliente, req.body);
+    res.json({ ok: true, mensaje: 'Factura generada y enviada correctamente.' });
+  } catch (err) {
+    console.error('Error generando la factura:', err);
+    res.status(err.status || 500).json({ error: err.message });
   }
 });
 
