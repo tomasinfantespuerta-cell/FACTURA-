@@ -1,0 +1,8 @@
+[
+  {
+    "slug": "tomi",
+    "nombre": "Tomi (interno / pruebas)",
+    "webhookUrl": "https://primary-production-a7be7.up.railway.app/webhook/factura-generada",
+    "template": "invoice-template.html"
+  }
+]
