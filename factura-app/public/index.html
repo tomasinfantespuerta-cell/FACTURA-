@@ -290,7 +290,13 @@
     datos.items = items;
 
     try {
-      const respuesta = await fetch('/generar-factura', {
+      // Detecta si estamos en la URL raíz (cliente por defecto) o en la
+      // "puerta" de un cliente concreto (ej. /panaderia-luna) y manda el
+      // formulario al endpoint correcto en cada caso.
+      const slug = window.location.pathname.replace(/^\/|\/$/g, '');
+      const endpoint = slug ? `/${slug}/generar-factura` : '/generar-factura';
+
+      const respuesta = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(datos),
